@@ -23,19 +23,21 @@ ALL_STLS     := $(STLS_RELIEVE) $(STLS_INCISO) $(STLS_NOBASE)
 
 .PHONY: all clean dist/entregables
 
+capitalize = $(shell echo $(1) | awk '{print toupper(substr($$0,1,1)) substr($$0,2)}')
+
 all: $(ALL_STLS)
 
 $(STL_DIR)/%-base-relieve.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
-	$(OPENSCAD) -o "$@" -D 'NOMBRE="$*"' -D 'BASE=true' -D 'ENGRAVED=false' "$<"
+	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=false' "$<"
 
 $(STL_DIR)/%-base-inciso.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
-	$(OPENSCAD) -o "$@" -D 'NOMBRE="$*"' -D 'BASE=true' -D 'ENGRAVED=true' "$<"
+	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=true' "$<"
 
 $(STL_DIR)/%.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
-	$(OPENSCAD) -o "$@" -D 'NOMBRE="$*"' -D 'BASE=false' "$<"
+	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=false' "$<"
 
 $(DIST_ARCHIVE): $(ALL_STLS)
 	@mkdir -p $(DIST_DIR)

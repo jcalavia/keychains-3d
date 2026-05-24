@@ -1,0 +1,19 @@
+# Archivos generados por OpenSCAD
+*.stl
+*.off
+*.dxf
+*.svg
+*.csg
+*.ast
+*.nef
+*.echo
+
+# Directorios de salida
+stl/
+dist/
+
+# Editor / OS
+.DS_Store
+*.swp
+*.swo
+*~

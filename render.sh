@@ -8,11 +8,13 @@
 #   {nombre}.stl                - Solo texto, sin base
 #
 # Uso:
-#   ./render.sh                    - Renderiza todos los disenos
-#   ./render.sh marcos             - Renderiza solo un diseno
-#   ./render.sh --clean marcos     - Limpia y renderiza
-#   ./render.sh --parallel         - Renderiza todos en paralelo
-#   ./render.sh --dist             - Renderiza todos y genera distribucion
+#   ./render.sh                          - Renderiza todos los disenos (Brush Script MT)
+#   ./render.sh marcos                   - Renderiza solo un diseno
+#   ./render.sh --group cursivas         - Renderiza todos los disenos con cada fuente del grupo
+#   ./render.sh --group manuscritas      - Idem con fuentes manuscritas
+#   ./render.sh --clean marcos           - Limpia y renderiza
+#   ./render.sh --parallel               - Renderiza todos en paralelo
+#   ./render.sh --dist                   - Renderiza todos y genera distribucion
 #
 
 set -euo pipefail
@@ -20,6 +22,7 @@ set -euo pipefail
 TEMPLATE="template.scad"
 LIB_DIR="lib"
 STL_DIR="stl"
+FONTS_DIR="fonts"
 DIST_DIR="dist"
 DIST_ARCHIVE="${DIST_DIR}/keychains-3d.tar.gz"
 SHARED_LIB="${LIB_DIR}/keychain.scad"
@@ -46,13 +49,19 @@ CLEAN=false
 PARALLEL=false
 DIST=false
 SPECIFIC=""
+FONT_GROUP=""
+
+sanitize_name() {
+    echo "$1" | sed 's/ //g'
+}
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --clean)     CLEAN=true; shift ;;
         --parallel)  PARALLEL=true; shift ;;
         --dist)      DIST=true; shift ;;
-        --help|-h)   sed -n '2,13p' "$0"; exit 0 ;;
+        --group|-g)  FONT_GROUP="${2?Falta nombre del grupo}"; shift 2 ;;
+        --help|-h)   sed -n '2,16p' "$0"; exit 0 ;;
         *)
             if [[ -z "$SPECIFIC" ]]; then
                 SPECIFIC="$1"
@@ -105,6 +114,8 @@ VARIANTS=(
     "texto:false:false"
 )
 
+RENDER_ERRORS=0
+
 get_output_name() {
     local name="$1"
     local variant="$2"
@@ -120,9 +131,16 @@ render_one() {
     local variant="$2"
     local base_val="$3"
     local engraved_val="$4"
+    local font="${5:-}"
+    local subdir="${6:-}"
     local out_name
     out_name="$(get_output_name "$name" "$variant")"
-    local dst="${STL_DIR}/${out_name}"
+    local dst
+    if [ -n "$subdir" ]; then
+        dst="${STL_DIR}/${subdir}/${out_name}"
+    else
+        dst="${STL_DIR}/${out_name}"
+    fi
 
     local src_mtime=0 dst_mtime=0
 
@@ -143,50 +161,100 @@ render_one() {
         return 0
     fi
 
-    echo -e "${BLUE}  [RENDER]${NC} $out_name..."
-    "$OPENSCAD" -o "$dst" \
-        -D "NOMBRE=\"$(echo "$name" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')\"" \
-        -D "BASE=$base_val" \
-        -D "ENGRAVED=$engraved_val" \
-        "$TEMPLATE"
+    local capitalised_name
+    capitalised_name="$(echo "$name" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')"
+
+    echo -e "${BLUE}  [RENDER]${NC} ${subdir:+$subdir/}$out_name..."
+
+    if [ -n "$font" ]; then
+        "$OPENSCAD" -o "$dst" \
+            -D "NOMBRE=\"$capitalised_name\"" \
+            -D "BASE=$base_val" \
+            -D "ENGRAVED=$engraved_val" \
+            -D "FONT=\"$font\"" \
+            "$TEMPLATE"
+    else
+        "$OPENSCAD" -o "$dst" \
+            -D "NOMBRE=\"$capitalised_name\"" \
+            -D "BASE=$base_val" \
+            -D "ENGRAVED=$engraved_val" \
+            "$TEMPLATE"
+    fi
 
     if [ -f "$dst" ]; then
         local size
         size=$(du -h "$dst" | cut -f1)
-        echo -e "${GREEN}  [OK]${NC} $out_name ($size)"
+        echo -e "${GREEN}  [OK]${NC} ${subdir:+$subdir/}$out_name ($size)"
     else
-        echo -e "${RED}  [FAIL]${NC} $out_name" >&2
+        echo -e "${RED}  [FAIL]${NC} ${subdir:+$subdir/}$out_name" >&2
         return 1
     fi
+}
+
+render_design() {
+    local name="$1"
+    local font="${2:-}"
+    local subdir="${3:-}"
+    for variant_info in "${VARIANTS[@]}"; do
+        IFS=':' read -r variant base_val engraved_val <<< "$variant_info"
+        render_one "$name" "$variant" "$base_val" "$engraved_val" "$font" "$subdir" || RENDER_ERRORS=$((RENDER_ERRORS + 1))
+    done
+}
+
+render_all() {
+    local font="${1:-}"
+    local subdir="${2:-}"
+    if [ "$PARALLEL" = true ] && [ ${#DESIGN_NAMES[@]} -gt 1 ]; then
+        for name in "${DESIGN_NAMES[@]}"; do
+            render_design "$name" "$font" "$subdir" &
+        done
+        wait
+    else
+        for name in "${DESIGN_NAMES[@]}"; do
+            render_design "$name" "$font" "$subdir"
+        done
+    fi
+}
+
+render_group() {
+    local group="$1"
+    local font_file="${FONTS_DIR}/${group}.txt"
+
+    if [ ! -f "$font_file" ]; then
+        echo -e "${RED}Error: no se encuentra ${font_file}${NC}" >&2
+        exit 1
+    fi
+
+    FONTS=()
+    while IFS= read -r line || [ -n "$line" ]; do
+        [ -n "$line" ] && FONTS+=("$line")
+    done < "$font_file"
+
+    echo -e "${CYAN}Grupo: ${group} (${#FONTS[@]} fuentes)${NC}"
+
+    for font in "${FONTS[@]}"; do
+        local font_dir
+        font_dir="$(sanitize_name "$font")"
+        local subdir="${group}/${font_dir}"
+        mkdir -p "${STL_DIR}/${subdir}"
+
+        local font_jobs=$(( ${#DESIGN_NAMES[@]} * 3 ))
+        echo -e "${CYAN}  Fuente: ${font} (${font_jobs} STLs)${NC}"
+
+        render_all "$font" "$subdir"
+    done
 }
 
 echo -e "${CYAN}═══════════════════════════════════════════${NC}"
 echo -e "${CYAN}  Renderizando disenos OpenSCAD${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════${NC}"
 
-TOTAL_JOBS=$(( ${#DESIGN_NAMES[@]} * 3 ))
-echo -e "${CYAN}Total: ${#DESIGN_NAMES[@]} disenos x 3 variantes = ${TOTAL_JOBS} STLs${NC}"
-
-RENDER_ERRORS=0
-
-render_design() {
-    local name="$1"
-    for variant_info in "${VARIANTS[@]}"; do
-        IFS=':' read -r variant base_val engraved_val <<< "$variant_info"
-        render_one "$name" "$variant" "$base_val" "$engraved_val" || RENDER_ERRORS=$((RENDER_ERRORS + 1))
-    done
-}
-
-if [ "$PARALLEL" = true ] && [ ${#DESIGN_NAMES[@]} -gt 1 ]; then
-    echo -e "${YELLOW}Modo paralelo habilitado${NC}"
-    for name in "${DESIGN_NAMES[@]}"; do
-        render_design "$name" &
-    done
-    wait
+    if [ -n "$FONT_GROUP" ]; then
+    render_group "$FONT_GROUP"
 else
-    for name in "${DESIGN_NAMES[@]}"; do
-        render_design "$name"
-    done
+    TOTAL_JOBS=$(( ${#DESIGN_NAMES[@]} * 3 ))
+    echo -e "${CYAN}Total: ${#DESIGN_NAMES[@]} disenos x 3 variantes = ${TOTAL_JOBS} STLs${NC}"
+    render_all
 fi
 
 echo -e "${CYAN}═══════════════════════════════════════════${NC}"

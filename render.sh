@@ -6,6 +6,7 @@
 #   {nombre}-base-relieve.stl   - Base + texto en relieve
 #   {nombre}-base-inciso.stl    - Base + texto inciso
 #   {nombre}.stl                - Solo texto, sin base
+#   {nombre}-anilla.stl         - Solo texto + anilla integrada
 #
 # Uso:
 #   ./render.sh                          - Renderiza grupos cursivas + manuscritas (por defecto)
@@ -109,9 +110,10 @@ else
 fi
 
 VARIANTS=(
-    "base-relieve:true:false"
-    "base-inciso:true:true"
-    "texto:false:false"
+    "base-relieve:true:false:false"
+    "base-inciso:true:true:false"
+    "texto:false:false:false"
+    "anilla:false:false:true"
 )
 
 RENDER_ERRORS=0
@@ -131,8 +133,9 @@ render_one() {
     local variant="$2"
     local base_val="$3"
     local engraved_val="$4"
-    local font="${5:-}"
-    local subdir="${6:-}"
+    local ring_val="$5"
+    local font="${6:-}"
+    local subdir="${7:-}"
     local out_name
     out_name="$(get_output_name "$name" "$variant")"
     local dst
@@ -172,12 +175,14 @@ render_one() {
             -D "BASE=$base_val" \
             -D "ENGRAVED=$engraved_val" \
             -D "FONT=\"$font\"" \
+            -D "RING=$ring_val" \
             "$TEMPLATE"
     else
         "$OPENSCAD" -o "$dst" \
             -D "NOMBRE=\"$capitalised_name\"" \
             -D "BASE=$base_val" \
             -D "ENGRAVED=$engraved_val" \
+            -D "RING=$ring_val" \
             "$TEMPLATE"
     fi
 
@@ -196,8 +201,8 @@ render_design() {
     local font="${2:-}"
     local subdir="${3:-}"
     for variant_info in "${VARIANTS[@]}"; do
-        IFS=':' read -r variant base_val engraved_val <<< "$variant_info"
-        render_one "$name" "$variant" "$base_val" "$engraved_val" "$font" "$subdir" || RENDER_ERRORS=$((RENDER_ERRORS + 1))
+        IFS=':' read -r variant base_val engraved_val ring_val <<< "$variant_info"
+        render_one "$name" "$variant" "$base_val" "$engraved_val" "$ring_val" "$font" "$subdir" || RENDER_ERRORS=$((RENDER_ERRORS + 1))
     done
 }
 

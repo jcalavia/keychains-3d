@@ -16,6 +16,9 @@
 //   corner_r      - Radio de esquinas redondeadas en mm (defecto: 3)
 //   engraved      - false = relieve, true = inciso (defecto: false)
 //   connect_offset - Expande letras para que se toquen en mm (0 = desactivado, defecto: 0.3)
+//   ring           - true añade anilla en lugar de base (defecto: false)
+//   ring_outer_r   - Radio exterior de la anilla en mm (defecto: 3.5)
+//   ring_inner_r   - Radio interior de la anilla en mm (defecto: 2)
 
 module _render_text(name, font_size, font, spacing, connect_offset, halign = "left", valign = "baseline") {
     if (connect_offset > 0) {
@@ -24,6 +27,14 @@ module _render_text(name, font_size, font, spacing, connect_offset, halign = "le
     } else {
         text(name, size = font_size, font = font, spacing = spacing, halign = halign, valign = valign);
     }
+}
+
+module _ring(outer_r, inner_r, height) {
+    linear_extrude(height = height, convexity = 4)
+        difference() {
+            circle(r = outer_r, $fn = 32);
+            circle(r = inner_r, $fn = 32);
+        }
 }
 
 module keychain(
@@ -38,7 +49,10 @@ module keychain(
     corner_r = 3,
     engraved = false,
     connect_offset = 0.3,
-    base = true
+    base = true,
+    ring = false,
+    ring_outer_r = 3.5,
+    ring_inner_r = 2
 ) {
     assert(len(name) > 0, "keychain: name no puede estar vacío");
 
@@ -80,6 +94,18 @@ module keychain(
             translate([text_x, text_y, base_height])
                 linear_extrude(height = text_height, convexity = 10)
                     _render_text(name, font_size, font, spacing, connect_offset);
+        }
+    } else if (ring) {
+        total_w = _text_width(name, font_size);
+        first_char_x = -total_w / 2;
+        first_char_top = font_size * 0.35;
+
+        union() {
+            linear_extrude(height = text_height, convexity = 10)
+                _render_text(name, font_size, font, spacing, connect_offset, "center", "center");
+
+            translate([first_char_x, first_char_top, 0])
+                _ring(ring_outer_r, ring_inner_r, text_height);
         }
     } else {
         // Solo texto centrado, sin base ni agujero

@@ -8,10 +8,10 @@
 #   {nombre}.stl                - Solo texto, sin base
 #
 # Uso:
-#   ./render.sh                          - Renderiza todos los disenos (Brush Script MT)
-#   ./render.sh marcos                   - Renderiza solo un diseno
-#   ./render.sh --group cursivas         - Renderiza todos los disenos con cada fuente del grupo
-#   ./render.sh --group manuscritas      - Idem con fuentes manuscritas
+#   ./render.sh                          - Renderiza grupos cursivas + manuscritas (por defecto)
+#   ./render.sh marcos                   - Renderiza solo un diseno con la fuente por defecto
+#   ./render.sh --group cursivas         - Renderiza solo el grupo cursivas
+#   ./render.sh --group manuscritas      - Renderiza solo el grupo manuscritas
 #   ./render.sh --clean marcos           - Limpia y renderiza
 #   ./render.sh --parallel               - Renderiza todos en paralelo
 #   ./render.sh --dist                   - Renderiza todos y genera distribucion
@@ -249,12 +249,16 @@ echo -e "${CYAN}═════════════════════�
 echo -e "${CYAN}  Renderizando disenos OpenSCAD${NC}"
 echo -e "${CYAN}═══════════════════════════════════════════${NC}"
 
-    if [ -n "$FONT_GROUP" ]; then
+if [ -n "$FONT_GROUP" ]; then
     render_group "$FONT_GROUP"
-else
+elif [ -n "$SPECIFIC" ]; then
     TOTAL_JOBS=$(( ${#DESIGN_NAMES[@]} * 3 ))
     echo -e "${CYAN}Total: ${#DESIGN_NAMES[@]} disenos x 3 variantes = ${TOTAL_JOBS} STLs${NC}"
     render_all
+else
+    echo -e "${CYAN}Modo predeterminado: renderizando grupos cursivas + manuscritas${NC}"
+    render_group "cursivas"
+    render_group "manuscritas"
 fi
 
 echo -e "${CYAN}═══════════════════════════════════════════${NC}"

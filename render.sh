@@ -145,7 +145,7 @@ render_one() {
 
     echo -e "${BLUE}  [RENDER]${NC} $out_name..."
     "$OPENSCAD" -o "$dst" \
-        -D "NOMBRE=\"$name\"" \
+        -D "NOMBRE=\"$(echo "$name" | awk '{print toupper(substr($0,1,1)) substr($0,2)}')\"" \
         -D "BASE=$base_val" \
         -D "ENGRAVED=$engraved_val" \
         "$TEMPLATE"

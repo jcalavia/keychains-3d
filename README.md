@@ -11,9 +11,9 @@ Variants per name:
 | Variant | Description |
 |---------|-------------|
 | `{name}.stl` | Text only, no base |
-| `{name}-base-relieve.stl` | Text on a base, embossed (relieve) |
-| `{name}-base-inciso.stl` | Text on a base, engraved (inciso) |
-| `{name}-anilla.stl` | Text with integrated ring |
+| `{name}_base_relieve.stl` | Text on a base, embossed (relieve) |
+| `{name}_base_inciso.stl` | Text on a base, engraved (inciso) |
+| `{name}_anilla.stl` | Text with integrated ring |
 
 Fonts are grouped into families (e.g., *cursivas*, *manuscritas*) and batch-rendered per group.
 

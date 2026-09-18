@@ -16,8 +16,8 @@ DIST_ARCHIVE := $(DIST_DIR)/keychains-3d.tar.gz
 
 DESIGN_NAMES := $(basename $(notdir $(wildcard $(DESIGNS_DIR)/*.scad)))
 
-STLS_RELIEVE := $(addprefix $(STL_DIR)/, $(addsuffix -base-relieve.stl, $(DESIGN_NAMES)))
-STLS_INCISO  := $(addprefix $(STL_DIR)/, $(addsuffix -base-inciso.stl, $(DESIGN_NAMES)))
+STLS_RELIEVE := $(addprefix $(STL_DIR)/, $(addsuffix _base_relieve.stl, $(DESIGN_NAMES)))
+STLS_INCISO  := $(addprefix $(STL_DIR)/, $(addsuffix _base_inciso.stl, $(DESIGN_NAMES)))
 STLS_NOBASE  := $(addprefix $(STL_DIR)/, $(addsuffix .stl, $(DESIGN_NAMES)))
 ALL_STLS     := $(STLS_RELIEVE) $(STLS_INCISO) $(STLS_NOBASE)
 
@@ -27,11 +27,11 @@ capitalize = $(shell echo $(1) | awk '{print toupper(substr($$0,1,1)) substr($$0
 
 all: $(ALL_STLS)
 
-$(STL_DIR)/%-base-relieve.stl: $(TEMPLATE) $(LIB)
+$(STL_DIR)/%-base_relieve.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
 	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=false' "$<"
 
-$(STL_DIR)/%-base-inciso.stl: $(TEMPLATE) $(LIB)
+$(STL_DIR)/%-base_inciso.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
 	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=true' "$<"
 

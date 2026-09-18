@@ -3,10 +3,10 @@
 # render.sh - Renderiza 3 variantes OpenSCAD por diseno
 #
 # Variantes por diseno:
-#   {nombre}-base-relieve.stl   - Base + texto en relieve
-#   {nombre}-base-inciso.stl    - Base + texto inciso
-#   {nombre}.stl                - Solo texto, sin base
-#   {nombre}-anilla.stl         - Solo texto + anilla integrada
+#   {nombre}_base_relieve.stl  - Base + texto en relieve
+#   {nombre}_base_inciso.stl   - Base + texto inciso
+#   {nombre}.stl               - Solo texto, sin base
+#   {nombre}_anilla.stl        - Solo texto + anilla integrada
 #
 # Uso:
 #   ./render.sh                          - Renderiza grupos cursivas + manuscritas (por defecto)
@@ -110,8 +110,8 @@ else
 fi
 
 VARIANTS=(
-    "base-relieve:true:false:false"
-    "base-inciso:true:true:false"
+    "base_relieve:true:false:false"
+    "base_inciso:true:true:false"
     "texto:false:false:false"
     "anilla:false:false:true"
 )
@@ -124,7 +124,7 @@ get_output_name() {
     if [ "$variant" = "texto" ]; then
         echo "${name}.stl"
     else
-        echo "${name}-${variant}.stl"
+        echo "${name}_${variant}.stl"
     fi
 }
 

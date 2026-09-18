@@ -11,9 +11,11 @@
 # Directorios de salida
 stl/
 dist/
+.tmp/
 
 # Editor / OS
 .DS_Store
+Thumbs.db
 *.swp
 *.swo
 *~

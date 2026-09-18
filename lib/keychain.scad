@@ -32,8 +32,8 @@ module _render_text(name, font_size, font, spacing, connect_offset, halign = "le
 module _ring(outer_r, inner_r, height) {
     linear_extrude(height = height, convexity = 4)
         difference() {
-            circle(r = outer_r, $fn = 32);
-            circle(r = inner_r, $fn = 32);
+            circle(r = outer_r, $fn = 64);
+            circle(r = inner_r, $fn = 64);
         }
 }
 
@@ -75,7 +75,7 @@ module keychain(
                         square([base_w - corner_r * 2, base_h - corner_r * 2]);
 
                 translate([hole_x, hole_y, -0.1])
-                    cylinder(h = base_height + 0.2, r = hole_diameter / 2, $fn = 24);
+                    cylinder(h = base_height + 0.2, r = hole_diameter / 2, $fn = 64);
 
                 translate([text_x, text_y, base_height - text_height])
                     linear_extrude(height = text_height + 0.1, convexity = 10)
@@ -88,7 +88,7 @@ module keychain(
                         square([base_w - corner_r * 2, base_h - corner_r * 2]);
 
                 translate([hole_x, hole_y, -0.1])
-                    cylinder(h = base_height + 0.2, r = hole_diameter / 2, $fn = 24);
+                    cylinder(h = base_height + 0.2, r = hole_diameter / 2, $fn = 64);
             }
 
             translate([text_x, text_y, base_height])

@@ -21,17 +21,23 @@ STLS_INCISO  := $(addprefix $(STL_DIR)/, $(addsuffix _base_inciso.stl, $(DESIGN_
 STLS_NOBASE  := $(addprefix $(STL_DIR)/, $(addsuffix .stl, $(DESIGN_NAMES)))
 ALL_STLS     := $(STLS_RELIEVE) $(STLS_INCISO) $(STLS_NOBASE)
 
-.PHONY: all clean dist/entregables
+.PHONY: all fonts clean dist/entregables
 
 capitalize = $(shell echo $(1) | awk '{print toupper(substr($$0,1,1)) substr($$0,2)}')
 
 all: $(ALL_STLS)
 
-$(STL_DIR)/%-base_relieve.stl: $(TEMPLATE) $(LIB)
+# Render every design with every font listed in fonts/*.txt (per group),
+# into stl/<group>/<font-without-spaces>/. Delegated to render.sh, which is
+# the canonical font-group pipeline (idempotent, skips up-to-date STLs).
+fonts:
+	@./render.sh
+
+$(STL_DIR)/%_base_relieve.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
 	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=false' "$<"
 
-$(STL_DIR)/%-base_inciso.stl: $(TEMPLATE) $(LIB)
+$(STL_DIR)/%_base_inciso.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
 	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=true' "$<"
 

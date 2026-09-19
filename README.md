@@ -36,9 +36,13 @@ Fonts are grouped into families (e.g., *cursivas*, *manuscritas*) and batch-rend
 ```bash
 cd keychains-3d
 make all            # Render all default variants into stl/
+make fonts          # Render every design with every font in fonts/*.txt (groups)
 make clean          # Remove stl/ and dist/
 make dist/entregables  # Create distribution tarball
 ```
+
+`make fonts` renders each design × each font into `stl/<group>/<font>/` (e.g.
+`stl/cursivas/Zapfino/marcos_base_relieve.stl`); it delegates to `render.sh`.
 
 ### Render script (extended variants)
 

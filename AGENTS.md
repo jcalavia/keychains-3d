@@ -56,10 +56,18 @@ both `make all` and `render.sh` derive `NOMBRE` from it. Design stubs may be nea
 
 ### Makefile vs render.sh (when to use which)
 
-- `make all` is the canonical CI/build path: 3 variants per name (text, relieve, inciso).
+- `make all` is the canonical CI/build path: 3 variants per name (text, relieve, inciso)
+  with the default font.
+- `make fonts` renders every design with **every font** in `fonts/*.txt` (all groups) into
+  `stl/<group>/<font-without-spaces>/` — it delegates to `render.sh` (the canonical font
+  pipeline, idempotent via mtime skip), so the group logic lives in ONE place.
 - `render.sh` adds the `_anilla` variant, font groups (`--group cursivas|manuscritas`),
   per-name batches, `--parallel`, and `--clean`/`--dist`. Keep the variant lists in both
   in sync (`VARIANTS` in render.sh vs the Makefile rules).
+- Important: the Makefile targets use **underscores** in STL names
+  (`{name}_base_relieve.stl`); pattern rules must use `%_base_relieve.stl`, never
+  `%-base_relieve.stl` — a hyphenated pattern silently falls through to the catch-all
+  `%.stl` rule and renders a corrupt variant (wrong name text, no base).
 - `make dist/entregables` tarballs `stl/` into `dist/keychains-3d.tar.gz` (gitignored).
 
 ## Working Rules for Agents

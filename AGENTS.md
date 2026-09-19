@@ -36,7 +36,8 @@ both `make all` and `render.sh` derive `NOMBRE` from it. Design stubs may be nea
   `ENGRAVED` (inciso=true / relieve=false), `RING` (integrated ring replaces base), `FONT`.
 - STL naming is the contract (standardized from hyphenated names in the 2026-09 alignment):
   `{name}.stl` (text only), `{name}_base_relieve.stl`, `{name}_base_inciso.stl`,
-  `{name}_anilla.stl`. Do not introduce naming variants; render.sh encodes these.
+  `{name}_anilla.stl`, `{name}_nameplate.stl` (pendant / pet tag). Do not introduce
+  naming variants; render.sh encodes these.
 
 ### Text rendering (invariants)
 
@@ -49,6 +50,19 @@ both `make all` and `render.sh` derive `NOMBRE` from it. Design stubs may be nea
   (`difference`). Both use the same `_render_text` path.
 - Ring variant: text centered with a ring (`ring_outer_r 3.5 / ring_inner_r 2`) attached at
   the first character's top.
+
+### Pendant / pet tag (hole_top) invariants
+
+- `hole_top = true` renders the pendant: base plate with the hole **top-center**
+  (`hole_y = margin + hole_diameter/2`, `hole_x = base_w/2`) and the text **centered
+  below** it (vertical gap `hole_gap = font_size * 0.6`).
+- The pendant branch is **always engraved (inciso)** — embossed letters wear off fast on a
+  collar tag. It does not consult `engraved`; `ENGRAVED=true` is still passed by the tools
+  for contract completeness.
+- `hole_top` requires `base = true` (asserted in the module); it must never reach the
+  ring/text-only branches silently.
+- Base sizing mirrors the keychain (`text_w * 1.5`, `connect_offset` padding) so the text
+  block stays identical across families — only the layout anchor differs.
 - Circles use `$fn = 64` (ring, hole); keep resolution sane — keychains are small,
   heavy meshes add slicing time without visible benefit.
 - Fonts come from the OS font list (default "Brush Script MT"); `fonts/*.txt` group names
@@ -56,14 +70,15 @@ both `make all` and `render.sh` derive `NOMBRE` from it. Design stubs may be nea
 
 ### Makefile vs render.sh (when to use which)
 
-- `make all` is the canonical CI/build path: 3 variants per name (text, relieve, inciso)
-  with the default font.
+- `make all` is the canonical CI/build path: 4 variants per name (text, relieve, inciso,
+  nameplate) with the default font.
 - `make fonts` renders every design with **every font** in `fonts/*.txt` (all groups) into
   `stl/<group>/<font-without-spaces>/` — it delegates to `render.sh` (the canonical font
   pipeline, idempotent via mtime skip), so the group logic lives in ONE place.
-- `render.sh` adds the `_anilla` variant, font groups (`--group cursivas|manuscritas`),
-  per-name batches, `--parallel`, and `--clean`/`--dist`. Keep the variant lists in both
-  in sync (`VARIANTS` in render.sh vs the Makefile rules).
+- `render.sh` renders the full 5-variant set (adds `_anilla` on top of the Makefile's 4),
+  font groups (`--group cursivas|manuscritas`), per-name batches, `--parallel`, and
+  `--clean`/`--dist`. Keep the variant lists in both in sync (`VARIANTS` in render.sh vs
+  the Makefile rules — the 5th field is `hole_top`/PENDANT).
 - Important: the Makefile targets use **underscores** in STL names
   (`{name}_base_relieve.stl`); pattern rules must use `%_base_relieve.stl`, never
   `%-base_relieve.stl` — a hyphenated pattern silently falls through to the catch-all

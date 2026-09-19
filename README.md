@@ -1,6 +1,6 @@
 # keychains-3d
 
-Parametric keychain generator. Each design is rendered from a shared template into multiple variants: plain text, text on a base (embossed or engraved), and text with an integrated ring.
+Parametric keychain generator. Each design is rendered from a shared template into multiple variants: plain text, text on a base (embossed or engraved), text with an integrated ring, and engraved pendants (pet ID tags) with the hole on top.
 
 ## Description
 
@@ -14,6 +14,7 @@ Variants per name:
 | `{name}_base_relieve.stl` | Text on a base, embossed (relieve) |
 | `{name}_base_inciso.stl` | Text on a base, engraved (inciso) |
 | `{name}_anilla.stl` | Text with integrated ring |
+| `{name}_nameplate.stl` | Engraved pendant / pet ID tag — hole on top, text centered below |
 
 Fonts are grouped into families (e.g., *cursivas*, *manuscritas*) and batch-rendered per group.
 

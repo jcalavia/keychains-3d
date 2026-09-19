@@ -6,5 +6,6 @@ BASE = true;              // true = with base plate, false = text only
 ENGRAVED = false;         // true = engraved text, false = embossed text
 FONT = "Brush Script MT"; // OpenSCAD font name
 RING = false;             // true = integrated ring instead of base plate
+PENDANT = false;          // true = pendant/pet tag: hole on top-center, engraved text below
 
-keychain(NOMBRE, base = BASE, engraved = ENGRAVED, font = FONT, ring = RING);
+keychain(NOMBRE, base = BASE, engraved = ENGRAVED, font = FONT, ring = RING, hole_top = PENDANT);

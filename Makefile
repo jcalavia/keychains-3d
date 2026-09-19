@@ -19,7 +19,8 @@ DESIGN_NAMES := $(basename $(notdir $(wildcard $(DESIGNS_DIR)/*.scad)))
 STLS_RELIEVE := $(addprefix $(STL_DIR)/, $(addsuffix _base_relieve.stl, $(DESIGN_NAMES)))
 STLS_INCISO  := $(addprefix $(STL_DIR)/, $(addsuffix _base_inciso.stl, $(DESIGN_NAMES)))
 STLS_NOBASE  := $(addprefix $(STL_DIR)/, $(addsuffix .stl, $(DESIGN_NAMES)))
-ALL_STLS     := $(STLS_RELIEVE) $(STLS_INCISO) $(STLS_NOBASE)
+STLS_NAMEPLATE := $(addprefix $(STL_DIR)/, $(addsuffix _nameplate.stl, $(DESIGN_NAMES)))
+ALL_STLS     := $(STLS_RELIEVE) $(STLS_INCISO) $(STLS_NOBASE) $(STLS_NAMEPLATE)
 
 .PHONY: all fonts clean dist/entregables
 
@@ -40,6 +41,10 @@ $(STL_DIR)/%_base_relieve.stl: $(TEMPLATE) $(LIB)
 $(STL_DIR)/%_base_inciso.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)
 	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=true' "$<"
+
+$(STL_DIR)/%_nameplate.stl: $(TEMPLATE) $(LIB)
+	@mkdir -p $(STL_DIR)
+	$(OPENSCAD) -o "$@" -D 'NOMBRE="$(call capitalize,$*)"' -D 'BASE=true' -D 'ENGRAVED=true' -D 'PENDANT=true' "$<"
 
 $(STL_DIR)/%.stl: $(TEMPLATE) $(LIB)
 	@mkdir -p $(STL_DIR)

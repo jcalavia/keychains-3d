@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 #
-# render.sh - Renderiza 3 variantes OpenSCAD por diseno
+# render.sh - Renderiza 5 variantes OpenSCAD por diseno
 #
 # Variantes por diseno:
 #   {nombre}_base_relieve.stl  - Base + texto en relieve
 #   {nombre}_base_inciso.stl   - Base + texto inciso
 #   {nombre}.stl               - Solo texto, sin base
 #   {nombre}_anilla.stl        - Solo texto + anilla integrada
+#   {nombre}_nameplate.stl     - Chapa colgante/mascota: agujero arriba, texto inciso
 #
 # Uso:
 #   ./render.sh                          - Renderiza grupos cursivas + manuscritas (por defecto)
@@ -110,10 +111,11 @@ else
 fi
 
 VARIANTS=(
-    "base_relieve:true:false:false"
-    "base_inciso:true:true:false"
-    "texto:false:false:false"
-    "anilla:false:false:true"
+    "base_relieve:true:false:false:false"
+    "base_inciso:true:true:false:false"
+    "texto:false:false:false:false"
+    "anilla:false:false:true:false"
+    "nameplate:true:true:false:true"
 )
 
 RENDER_ERRORS=0
@@ -136,6 +138,7 @@ render_one() {
     local ring_val="$5"
     local font="${6:-}"
     local subdir="${7:-}"
+    local pendant_val="${8:-}"
     local out_name
     out_name="$(get_output_name "$name" "$variant")"
     local dst
@@ -176,6 +179,7 @@ render_one() {
             -D "ENGRAVED=$engraved_val" \
             -D "FONT=\"$font\"" \
             -D "RING=$ring_val" \
+            -D "PENDANT=$pendant_val" \
             "$TEMPLATE"
     else
         "$OPENSCAD" -o "$dst" \
@@ -183,6 +187,7 @@ render_one() {
             -D "BASE=$base_val" \
             -D "ENGRAVED=$engraved_val" \
             -D "RING=$ring_val" \
+            -D "PENDANT=$pendant_val" \
             "$TEMPLATE"
     fi
 
@@ -201,8 +206,8 @@ render_design() {
     local font="${2:-}"
     local subdir="${3:-}"
     for variant_info in "${VARIANTS[@]}"; do
-        IFS=':' read -r variant base_val engraved_val ring_val <<< "$variant_info"
-        render_one "$name" "$variant" "$base_val" "$engraved_val" "$ring_val" "$font" "$subdir" || RENDER_ERRORS=$((RENDER_ERRORS + 1))
+        IFS=':' read -r variant base_val engraved_val ring_val pendant_val <<< "$variant_info"
+        render_one "$name" "$variant" "$base_val" "$engraved_val" "$ring_val" "$font" "$subdir" "$pendant_val" || RENDER_ERRORS=$((RENDER_ERRORS + 1))
     done
 }
 
@@ -243,7 +248,7 @@ render_group() {
         local subdir="${group}/${font_dir}"
         mkdir -p "${STL_DIR}/${subdir}"
 
-        local font_jobs=$(( ${#DESIGN_NAMES[@]} * 3 ))
+        local font_jobs=$(( ${#DESIGN_NAMES[@]} * ${#VARIANTS[@]} ))
         echo -e "${CYAN}  Fuente: ${font} (${font_jobs} STLs)${NC}"
 
         render_all "$font" "$subdir"
@@ -257,8 +262,8 @@ echo -e "${CYAN}═════════════════════�
 if [ -n "$FONT_GROUP" ]; then
     render_group "$FONT_GROUP"
 elif [ -n "$SPECIFIC" ]; then
-    TOTAL_JOBS=$(( ${#DESIGN_NAMES[@]} * 3 ))
-    echo -e "${CYAN}Total: ${#DESIGN_NAMES[@]} disenos x 3 variantes = ${TOTAL_JOBS} STLs${NC}"
+    TOTAL_JOBS=$(( ${#DESIGN_NAMES[@]} * ${#VARIANTS[@]} ))
+    echo -e "${CYAN}Total: ${#DESIGN_NAMES[@]} disenos x ${#VARIANTS[@]} variantes = ${TOTAL_JOBS} STLs${NC}"
     render_all
 else
     echo -e "${CYAN}Modo predeterminado: renderizando grupos cursivas + manuscritas${NC}"

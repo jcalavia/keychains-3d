@@ -53,9 +53,14 @@ both `make all` and `render.sh` derive `NOMBRE` from it. Design stubs may be nea
 
 ### Pendant / pet tag (hole_top) invariants
 
-- `hole_top = true` renders the pendant: base plate with the hole **top-center**
-  (`hole_y = margin + hole_diameter/2`, `hole_x = base_w/2`) and the text **centered
-  below** it (vertical gap `hole_gap = font_size * 0.6`).
+- `hole_top = true` renders the pendant: base plate with the hole **top-center** on the
+  **+Y edge** (`hole_y = base_h - margin - hole_diameter/2`, `hole_x = base_w/2`) and the
+  text **centered below** it (vertical gap `hole_gap = font_size * 0.6`, `text_y` derived
+  from `base_h` so the text hugs the bottom margin).
+- **Orientation invariant (never break)**: OpenSCAD `text()` grows letter-tops toward +Y,
+  so the hole MUST live on the +Y edge with unrotated text — then the name reads upright
+  when the tag hangs from the hole. NEVER put the hole on the y=0 edge: the name hangs
+  upside down, and any render shows the hole below the text.
 - The pendant branch is **always engraved (inciso)** — embossed letters wear off fast on a
   collar tag. It does not consult `engraved`; `ENGRAVED=true` is still passed by the tools
   for contract completeness.

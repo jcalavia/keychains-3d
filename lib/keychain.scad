@@ -63,6 +63,8 @@ module keychain(
         if (hole_top) {
             // Colgante / chapa de mascota: agujero arriba-centro y texto inciso centrado debajo.
             // Siempre inciso: el relieve se desgasta rápido en una chapa de collar.
+            // El agujero va en el borde +Y y las letras apuntan hacia él (los tops de las
+            // letras crecen hacia +Y), así el nombre se lee bien colgado del collar.
             text_w = _text_width(name, font_size) * 1.5;
             hole_gap = font_size * 0.6;   // separación vertical agujero-texto
 
@@ -70,10 +72,10 @@ module keychain(
             base_h = margin + hole_diameter + hole_gap + font_size + margin + 2 * connect_offset;
 
             hole_x = base_w / 2;
-            hole_y = margin + hole_diameter / 2;
+            hole_y = base_h - margin - hole_diameter / 2;
 
             text_x = (base_w - (text_w + 2 * connect_offset)) / 2;
-            text_y = margin + hole_diameter + hole_gap + connect_offset;
+            text_y = base_h - margin - hole_diameter - hole_gap - font_size - 2 * connect_offset;
 
             difference() {
                 linear_extrude(height = base_height, convexity = 10)
